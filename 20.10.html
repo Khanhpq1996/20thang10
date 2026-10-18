@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIC Bắc Trung Bộ - Chào Mừng Ngày Phụ Nữ Việt Nam 20/10</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Alex+Brush&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bic: {
+                            teal: '#005C5E',        // Xanh ngọc sẫm chuẩn BIC
+                            darkteal: '#004243',    // Xanh ngọc trầm sâu
+                            softteal: '#e4f3f1',    // Xanh ngọc phấn nền
+                            mint: '#bfe7e2',        // Viền thanh ngọc
+                            gold: '#E88A1A',        // Cam vàng chuẩn thương hiệu BIC
+                            golddark: '#cc7406',
+                            accentyellow: '#f4b842',// Vàng dải ribbon Ảnh 1
+                        }
+                    },
+                    fontFamily: {
+                        vietnam: ['"Be Vietnam Pro"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                        script: ['"Alex Brush"', 'cursive'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #f7faf9;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Nền dốc ngọc bích nhạt thanh lịch mô phỏng chính xác phông nền Ảnh 1 */
+        .bic-hero-bg {
+            background: linear-gradient(180deg, #ffffff 0%, #f1faf8 45%, #e1f4f1 80%, #d2ece7 100%);
+        }
+
+        /* Canvas hiệu ứng hoa rơi */
+        #petalCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* Đổ bóng chữ trang trọng */
+        .text-gold-shadow {
+            text-shadow: 0 3px 12px rgba(232, 138, 26, 0.28);
+        }
+        .text-bic-shadow {
+            text-shadow: 0 4px 18px rgba(0, 92, 94, 0.2);
+        }
+
+        /* Nút nổi tương tác */
+        .float-btn {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .float-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-bic-teal selection:text-white">
+
+    <!-- Cánh hoa rơi tự do trên Canvas -->
+    <canvas id="petalCanvas"></canvas>
+
+    <!-- FLOATING ACTIONS: MẠNG XÃ HỘI (FACEBOOK, TIKTOK, QR CODE & CÁNH HOA) -->
+    <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+        <!-- Nút Facebook BIC -->
+        <a href="https://www.facebook.com/profile.php?id=61587655791469" target="_blank" rel="noopener noreferrer" class="float-btn flex items-center gap-2.5 bg-[#1877F2] text-white px-4 py-2.5 rounded-full shadow-lg border border-white/20" title="Facebook BICBTB">
+            <i class="fa-brands fa-facebook-f text-base"></i>
+            <span class="text-xs font-bold tracking-wide hidden sm:inline">Facebook BIC</span>
+        </a>
+
+        <!-- Nút TikTok BIC -->
+        <a href="https://www.tiktok.com/@bicbtb2007" target="_blank" rel="noopener noreferrer" class="float-btn flex items-center gap-2.5 bg-slate-950 text-white px-4 py-2.5 rounded-full shadow-lg border border-slate-700" title="Kênh TikTok BICBTB">
+            <i class="fa-brands fa-tiktok text-base text-[#00f2fe]"></i>
+            <span class="text-xs font-bold tracking-wide hidden sm:inline">TikTok BIC</span>
+        </a>
+
+        <!-- Nút mở Modal quét mã QR -->
+        <button onclick="openSocialModal()" class="float-btn flex items-center justify-center bg-white text-bic-teal w-11 h-11 rounded-full shadow-lg border border-bic-mint hover:bg-bic-softteal" title="Quét mã QR Facebook & TikTok">
+            <i class="fa-solid fa-qrcode text-lg text-bic-gold"></i>
+        </button>
+
+        <!-- Nút bật/tắt cánh hoa rơi -->
+        <button id="togglePetalsBtn" onclick="togglePetals()" class="float-btn flex items-center gap-2 bg-white/95 text-bic-teal px-3.5 py-2.5 rounded-full shadow-lg border border-bic-mint" title="Bật/Tắt cánh hoa rơi">
+            <i class="fa-solid fa-spa text-pink-500 animate-pulse text-base"></i>
+            <span class="text-xs font-semibold hidden sm:inline" id="petalBtnText">Cánh hoa: Bật</span>
+        </button>
+
+        <!-- Nút bắn pháo hoa giấy chúc mừng -->
+        <button onclick="launchSparkles()" class="float-btn flex items-center justify-center bg-gradient-to-r from-bic-gold to-bic-accentyellow text-white w-12 h-12 rounded-full shadow-xl" title="Bắn pháo hoa giấy chào mừng">
+            <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+        </button>
+    </div>
+
+    <!-- HEADER: THANH ĐIỀU HƯỚNG VÀ NHẬN DIỆN THƯƠNG HIỆU -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-teal-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- LOGO BIC CHÍNH XÁC: NHÚNG BẰNG ẢNH ĐỒ HỌA VECTOR CHUẨN XÁC THEO ẢNH 2 -->
+            <a href="#" class="flex items-center gap-3 sm:gap-4 group">
+                <div class="flex items-center">
+                    <img id="navBicLogo" alt="Logo BIC" class="h-9 sm:h-11 w-auto object-contain">
+                </div>
+
+                <!-- Đường gạch ngăn cách thanh lịch -->
+                <div class="h-8 w-[1.5px] bg-slate-200 hidden sm:block"></div>
+
+                <!-- Tên cơ quan đơn vị: Nghệ An & Hà Tĩnh -->
+                <div class="flex flex-col justify-center">
+                    <span class="text-xs sm:text-sm font-bold tracking-wider text-bic-teal uppercase leading-tight">
+                        CÔNG TY BẢO HIỂM BIDV BẮC TRUNG BỘ
+                    </span>
+                    <span class="text-[10px] sm:text-xs font-semibold text-bic-gold uppercase tracking-widest mt-0.5">
+                        
+                    </span>
+                </div>
+            </a>
+
+            <!-- Menu liên kết nhanh & Mạng xã hội -->
+            <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-700">
+                <a href="#backdrop" class="hover:text-bic-teal transition-colors font-semibold">Trang đầu</a>
+                <a href="#thu-chuc-mung" class="hover:text-bic-teal transition-colors">Thư chào</a>
+                <a href="#tao-thiep" class="hover:text-bic-teal transition-colors">Thiệp mừng</a>
+                <a href="#dia-ban" class="hover:text-bic-teal transition-colors">Địa bàn</a>
+                
+                <!-- Icon mạng xã hội trên header -->
+                <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
+                    <a href="https://www.facebook.com/profile.php?id=61587655791469" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-full bg-blue-50 text-[#1877F2] hover:bg-[#1877F2] hover:text-white flex items-center justify-center transition" title="Trang Facebook chính thức">
+                        <i class="fa-brands fa-facebook-f text-xs"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/@bicbtb2007" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-full bg-slate-100 text-slate-800 hover:bg-black hover:text-white flex items-center justify-center transition" title="Kênh TikTok chính thức">
+                        <i class="fa-brands fa-tiktok text-xs"></i>
+                    </a>
+                    <button onclick="openSocialModal()" class="w-8 h-8 rounded-full bg-amber-50 text-bic-gold hover:bg-bic-gold hover:text-white flex items-center justify-center transition" title="Quét mã QR kết nối">
+                        <i class="fa-solid fa-qrcode text-xs"></i>
+                    </button>
+                </div>
+
+                <a href="#tao-thiep" class="bg-bic-teal hover:bg-bic-darkteal text-white text-xs font-bold uppercase px-4 py-2.5 rounded-full shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-bic-accentyellow"></i>
+                    Tạo Thiệp Online
+                </a>
+            </nav>
+
+            <!-- Nút mobile -->
+            <div class="md:hidden flex items-center gap-2">
+                <button onclick="openSocialModal()" class="p-2 text-slate-700 hover:text-bic-teal" title="Kênh mạng xã hội">
+                    <i class="fa-solid fa-share-nodes text-lg"></i>
+                </button>
+                <a href="#tao-thiep" class="bg-bic-teal text-white text-xs font-bold px-3 py-2 rounded-lg shadow">
+                    Tạo Thiệp Online
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- BACKDROP CHÍNH: BÁM SÁT GIAO DIỆN HỘI NGHỊ ẢNH 1 VỚI LOGO CHUẨN XÁC ẢNH 2 -->
+        <section id="backdrop" class="relative min-h-[92vh] bic-hero-bg flex flex-col justify-between items-center text-center px-4 sm:px-6 pt-8 pb-32 sm:pb-40 overflow-hidden">
+            
+            <!-- Khối nhận diện trung tâm Backdrop -->
+            <div class="relative z-20 flex flex-col items-center max-w-5xl mx-auto">
+                
+                <!-- Bảng Logo & Tên đơn vị hội nghị như trên Ảnh 1 -->
+                <div class="flex items-center justify-center gap-3 sm:gap-4 py-3 px-6 sm:px-10 bg-white/95 backdrop-blur-md rounded-full shadow-md border border-white mb-8 sm:mb-10">
+                    <img id="backdropBicLogo" alt="Logo BIC" class="h-9 sm:h-12 w-auto object-contain">
+                    <div class="text-left border-l-2 border-bic-teal/30 pl-3 sm:pl-4">
+                        <div class="text-[11px] sm:text-xs font-black uppercase tracking-widest text-bic-teal leading-none">
+                            TỔNG CÔNG TY BẢO HIỂM BIDV
+                        </div>
+                        <div class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-bic-gold mt-1">
+                            CÔNG TY BẢO HIỂM BIDV BẮC TRUNG BỘ
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Huy hiệu sự kiện 20/10 -->
+                <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/80 border border-bic-teal/20 text-bic-teal text-xs sm:text-sm font-semibold tracking-wider uppercase mb-4 shadow-sm">
+                    <i class="fa-solid fa-heart text-bic-gold"></i>
+                    BIC Bắc Trung Bộ
+                    <i class="fa-solid fa-heart text-bic-gold"></i>
+                </div>
+
+                <!-- DÒNG TIÊU ĐỀ 1: MÀU CAM VÀNG NHƯ "HỘI NGHỊ" Ở ẢNH 1 -->
+                <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold text-bic-gold uppercase tracking-wider text-gold-shadow mb-2 sm:mb-4">
+                    CHÀO MỪNG
+                </h1>
+
+                <!-- DÒNG TIÊU ĐỀ 2: XANH NGỌC SẪM BIC NHƯ "TRIỂN KHAI KẾ HOẠCH KINH DOANH 2026" Ở ẢNH 1 -->
+                <h2 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-bic-teal uppercase tracking-tight text-bic-shadow leading-tight sm:leading-snug">
+                    NGÀY PHỤ NỮ VIỆT NAM 20/10
+                </h2>
+
+                <!-- Lời dẫn truyền cảm hứng dành riêng cho Bắc Trung Bộ -->
+                <p class="mt-4 sm:mt-6 text-base sm:text-xl text-slate-700 max-w-3xl font-medium px-4 leading-relaxed">
+                    Tôn vinh trí tuệ, sắc đẹp, sự tận tâm và bản lĩnh kiên cường của toàn thể Nữ Cán bộ nhân viên, Quý Khách hàng/Đối tác của <strong class="text-bic-teal font-bold">BIC Bắc Trung Bộ</strong></span>.
+                </p>
+
+                <!-- DÒNG NGÀY THÁNG ĐỊA DANH CHUẨN XÁC NGHỆ AN & HÀ TĨNH THEO PHONG CÁCH ẢNH 1 -->
+                <div class="mt-6 sm:mt-8 flex items-center justify-center gap-2 text-sm sm:text-base font-normal italic text-slate-600 bg-white/60 px-6 py-2 rounded-full border border-teal-100">
+                    <i class="fa-solid fa-location-dot text-bic-gold not-italic text-sm"></i>
+                    <span>Nghệ An, ngày 20 tháng 10 năm 2026</span>
+                </div>
+
+                <!-- Nhóm nút CTA -->
+                <div class="mt-8 sm:mt-10 flex flex-wrap justify-center gap-4">
+                    <a href="#tao-thiep" class="px-8 py-3.5 bg-gradient-to-r from-bic-teal to-bic-darkteal hover:from-bic-darkteal hover:to-bic-teal text-white font-bold rounded-full shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 flex items-center gap-2.5">
+                        <i class="fa-solid fa-gift text-bic-accentyellow"></i>
+                        Tạo Thiệp Chúc Mừng 20/10
+                    </a>
+                    <a href="#thu-chuc-mung" class="px-8 py-3.5 bg-white hover:bg-slate-50 text-bic-teal border-2 border-bic-teal/30 hover:border-bic-teal font-bold rounded-full shadow-md transition-all duration-300 flex items-center gap-2">
+                        <i class="fa-regular fa-envelope-open text-bic-gold"></i>
+                        Thư Chúc Mừng Từ Ban Giám Đốc
+                    </a>
+                </div>
+            </div>
+
+            <!-- CÁC DẢI LỤA RIBBON 3D UỐN LƯỢN TÁI HIỆN CHÍNH XÁC ẢNH 1 Ở 2 GÓC DƯỚI -->
+            <!-- Dải lụa góc trái dưới -->
+            <div class="absolute right-0 bottom-0 w-[42vw] max-w-[520px] pointer-events-none z-10 opacity-95">
+                <svg viewBox="0 0 500 550" fill="none" class="w-full h-auto">
+                    <path d="M 261 294 
+           C 275 282, 335 220, 390 140 
+           C 440 68, 480 92, 500 102 
+           L 500 282 
+           C 440 270, 330 268, 261 294 Z" fill="url(#yellow-grad)" filter="url(#yellow-shadow)" />
+
+  <!-- Dải sóng uốn lượn màu xanh ngọc ở dưới -->
+  <path d="M 32 560 
+           C 30 500, 70 425, 175 375 
+           C 280 325, 385 305, 420 307 
+           C 410 320, 310 330, 240 375 
+           C 180 415, 210 520, 215 560 
+           Z" fill="url(#teal-wave-grad)" filter="url(#wave-shadow)" />
+
+  <!-- Lớp ánh sáng (highlight) viền trên của sóng ngọc -->
+  <path d="M 32 560 
+           C 30 500, 70 425, 175 375 
+           C 280 325, 385 305, 420 307 
+           C 350 315, 260 340, 185 390 
+           C 110 440, 65 500, 52 560 
+           Z" fill="url(#highlight-grad)" />
+                    <defs>
+    <!-- Bộ lọc đổ bóng mềm cho mảng màu vàng -->
+    <filter id="yellow-shadow" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="-4" dy="6" stdDeviation="6" flood-color="#003530" flood-opacity="0.45" />
+    </filter>
+
+    <!-- Bộ lọc đổ bóng cho dải uốn cong màu xanh -->
+    <filter id="wave-shadow" x="-20%" y="-20%" width="150%" height="150%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10" />
+      <feOffset dx="8" dy="-6" result="offsetblur" />
+      <feFlood flood-color="#002b28" flood-opacity="0.5" />
+      <feComposite in2="offsetblur" operator="in" />
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Gradient mảng màu vàng -->
+    <linearGradient id="yellow-grad" x1="0%" y1="100%" x2="80%" y2="0%">
+      <stop offset="0%" stop-color="#e8be3b" />
+      <stop offset="60%" stop-color="#edd255" />
+      <stop offset="100%" stop-color="#f5e06e" />
+    </linearGradient>
+
+    <!-- Gradient dải cong màu xanh sáng nổi bật -->
+    <linearGradient id="teal-wave-grad" x1="10%" y1="90%" x2="90%" y2="20%">
+      <stop offset="0%" stop-color="#00baa0" />
+      <stop offset="45%" stop-color="#009c87" />
+      <stop offset="80%" stop-color="#006d64" />
+      <stop offset="100%" stop-color="#004d47" />
+    </linearGradient>
+
+    <!-- Vệt sáng phản chiếu (highlight) trên thân dải sóng -->
+    <linearGradient id="highlight-grad" x1="0%" y1="100%" x2="60%" y2="0%">
+      <stop offset="0%" stop-color="#6eeedb" stop-opacity="0.6" />
+      <stop offset="40%" stop-color="#00bfa5" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#004d47" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+                </svg>
+            </div>
+
+            <!-- Dải lụa góc phải dưới -->
+            <div class="absolute left-0 bottom-0 w-[42vw] max-w-[520px] pointer-events-none z-10 opacity-95 transform scale-x-[-1]">
+                <svg viewBox="0 0 450 350" fill="none" class="w-full h-auto">
+                    <path d="M 261 294 
+           C 275 282, 335 220, 390 140 
+           C 440 68, 480 92, 500 102 
+           L 500 282 
+           C 440 270, 330 268, 261 294 Z" fill="url(#yellow-grad)" filter="url(#yellow-shadow)" />
+
+  <!-- Dải sóng uốn lượn màu xanh ngọc ở dưới -->
+  <path d="M 32 560 
+           C 30 500, 70 425, 175 375 
+           C 280 325, 385 305, 420 307 
+           C 410 320, 310 330, 240 375 
+           C 180 415, 210 520, 215 560 
+           Z" fill="url(#teal-wave-grad)" filter="url(#wave-shadow)" />
+
+  <!-- Lớp ánh sáng (highlight) viền trên của sóng ngọc -->
+  <path d="M 32 560 
+           C 30 500, 70 425, 175 375 
+           C 280 325, 385 305, 420 307 
+           C 350 315, 260 340, 185 390 
+           C 110 440, 65 500, 52 560 
+           Z" fill="url(#highlight-grad)" />
+                    <defs>
+    <!-- Bộ lọc đổ bóng mềm cho mảng màu vàng -->
+    <filter id="yellow-shadow" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="-4" dy="6" stdDeviation="6" flood-color="#003530" flood-opacity="0.45" />
+    </filter>
+
+    <!-- Bộ lọc đổ bóng cho dải uốn cong màu xanh -->
+    <filter id="wave-shadow" x="-20%" y="-20%" width="150%" height="150%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10" />
+      <feOffset dx="8" dy="-6" result="offsetblur" />
+      <feFlood flood-color="#002b28" flood-opacity="0.5" />
+      <feComposite in2="offsetblur" operator="in" />
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Gradient mảng màu vàng -->
+    <linearGradient id="yellow-grad" x1="0%" y1="100%" x2="80%" y2="0%">
+      <stop offset="0%" stop-color="#e8be3b" />
+      <stop offset="60%" stop-color="#edd255" />
+      <stop offset="100%" stop-color="#f5e06e" />
+    </linearGradient>
+
+    <!-- Gradient dải cong màu xanh sáng nổi bật -->
+    <linearGradient id="teal-wave-grad" x1="10%" y1="90%" x2="90%" y2="20%">
+      <stop offset="0%" stop-color="#00baa0" />
+      <stop offset="45%" stop-color="#009c87" />
+      <stop offset="80%" stop-color="#006d64" />
+      <stop offset="100%" stop-color="#004d47" />
+    </linearGradient>
+
+    <!-- Vệt sáng phản chiếu (highlight) trên thân dải sóng -->
+    <linearGradient id="highlight-grad" x1="0%" y1="100%" x2="60%" y2="0%">
+      <stop offset="0%" stop-color="#6eeedb" stop-opacity="0.6" />
+      <stop offset="40%" stop-color="#00bfa5" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#004d47" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+                </svg>
+            </div>
+        </section>
+
+        <!-- SECTION 2: THƯ TRI ÂN TỪ BAN GIÁM ĐỐC BIC BẮC TRUNG BỘ (NGHỆ AN & HÀ TĨNH) -->
+        <section id="thu-chuc-mung" class="py-20 bg-white relative">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6">
+                <div class="bg-gradient-to-b from-[#fbfdfc] to-[#f2faf8] rounded-3xl p-8 sm:p-14 shadow-2xl relative border-2 border-bic-mint/60">
+                    
+                    <!-- Nhãn huy hiệu thư -->
+                    <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-bic-gold text-white font-bold text-xs uppercase px-7 py-2 rounded-full shadow-md tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-star"></i>
+                        Thông Điệp Tri Ân 20/10
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+
+                    <!-- Header thư chúc -->
+                    <div class="text-center mb-8 mt-2">
+                        <div class="text-bic-gold font-script text-4xl mb-1">Gửi trọn yêu thương & trân quý</div>
+                        <h3 class="text-2xl sm:text-3xl font-black text-bic-teal uppercase">
+                            THƯ CHÚC MỪNG NGÀY PHỤ NỮ VIỆT NAM 20/10
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1 font-semibold uppercase tracking-wider">
+                            Ban Giám Đốc Công Ty Bảo Hiểm BIDV Bắc Trung Bộ
+                        </p>
+                    </div>
+
+                    <!-- Lời văn trang trọng -->
+                    <div class="space-y-4 text-slate-700 leading-relaxed text-base sm:text-lg text-justify">
+                        <p>
+                            <strong class="text-bic-teal">Kính gửi:</strong> Toàn thể Nữ Cán bộ nhân viên Công ty Bảo hiểm BIDV Bắc Trung Bộ thân mến!
+                        </p>
+                        <p>
+                            Nhân dịp kỷ niệm <strong class="text-bic-teal">Ngày Phụ nữ Việt Nam 20/10</strong>, thay mặt Ban Lãnh đạo cùng toàn thể nam đồng nghiệp tại <strong class="text-bic-gold">BIC Bắc Trung Bộ</strong>, chúng tôi xin trân trọng gửi tới các chị em lời chào thân ái, lời chúc mừng nồng nhiệt và lòng tri ân sâu sắc nhất!
+                        </p>
+                        <p>
+                            Trên dải đất miền Trung giàu truyền thống cách mạng, đối diện với những thử thách khắc nghiệt của thời tiết và áp lực thị trường, những nữ cán bộ bảo hiểm của BIC Băc Trung Bộ luôn giữ vững tinh thần trách nhiệm, sự thấu cảm, chu đáo và bản lĩnh kiên cường. Các chị em không chỉ là hậu phương vững chắc mà còn là lực lượng tiên phong, đóng góp to lớn vào sự phát triển vượt bậc của BIC Bắc Trung Bộ.
+                        </p>
+                        <p>
+                            Kính chúc toàn thể Chị Em luôn <strong>Xinh đẹp - Tự tin - An khang - Hạnh phúc</strong>, tiếp tục lan tỏa niềm tin yêu và gặt hái thêm nhiều thành công vang dội trên chặng đường phía trước!
+                        </p>
+                    </div>
+
+                    <!-- Chân ký tên trang trọng -->
+                    <div class="mt-10 pt-6 border-t border-teal-100 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-bic-softteal flex items-center justify-center text-bic-teal text-xl">
+                                <i class="fa-solid fa-building-shield"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">CÔNG TY BẢO HIỂM BIDV BẮC TRUNG BỘ</div>
+                                <div class="text-xs text-bic-teal font-semibold"></div>
+                            </div>
+                        </div>
+
+                        <div class="text-center sm:text-right">
+                            <div class="font-script text-3xl text-bic-teal">BIC Bắc Trung Bộ</div>
+                            <div class="text-xs uppercase font-bold text-bic-gold tracking-widest mt-1">Ban Giám Đốc Kính Tặng</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: CÔNG CỤ TẠO THIỆP CHÚC MỪNG 20/10 TƯƠNG TÁC -->
+        <section id="tao-thiep" class="py-16 bic-hero-bg relative">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                <!-- Tiêu đề Section -->
+                <div class="text-center max-w-3xl mx-auto mb-12">
+                    <span class="text-xs font-bold uppercase tracking-widest text-bic-gold bg-amber-50 px-4 py-1.5 rounded-full border border-amber-200">
+                        <i class="fa-solid fa-gift mr-1"></i> Thiệp Chúc Mừng Trực Tuyến
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-bic-teal mt-3">
+                        Gửi Thiệp 20/10 - BIC Bắc Trung Bộ
+                    </h2>
+                    <p class="text-slate-600 mt-2 text-sm sm:text-base">
+                        Nhập thông tin tạo thiệp online để gửi những lời chúc đến phái đẹp ngay nào!.
+                    </p>
+                </div>
+
+                <!-- Bố cục 2 cột -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    <!-- Cột Form tùy biến -->
+                    <div class="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-teal-100">
+                        <h4 class="text-lg font-bold text-slate-800 flex items-center gap-2 mb-5">
+                            <i class="fa-solid fa-pen-to-square text-bic-gold"></i>
+                            Thông tin tạo thiệp
+                        </h4>
+
+                        <div class="space-y-4">
+                            <!-- Tên người nhận -->
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                    Tên người nhận *
+                                </label>
+                                <input type="text" id="recipientNameInput" placeholder="Nhập tên người nhận" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-bic-teal text-slate-800 text-sm font-semibold" oninput="updateCardPreview()">
+                            </div>
+
+                            <!-- Lựa chọn địa bàn Nghệ An hoặc Hà Tĩnh -->
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                    Địa bàn / Phòng ban trực thuộc *
+                                </label>
+                                <select id="recipientAreaSelect" onchange="updateAreaPrefix()" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-bic-teal text-slate-800 text-sm font-semibold">
+                                    <option value="">Chọn địa bàn</option>
+                                    <option value="Nghệ An">Khu vực Nghệ An</option>
+                                    <option value="Hà Tĩnh">Khu vực Hà Tĩnh</option>
+                                    
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                    Bộ phận / Vị trí
+                                </label>
+                                <input type="text" id="recipientDeptInput" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-bic-teal text-slate-800 text-sm" oninput="updateCardPreview()">
+                            </div>
+
+                            <!-- Chọn thông điệp nhanh -->
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                    Chọn nhanh thông điệp ý nghĩa
+                                </label>
+                                <select id="presetWishSelect" onchange="applyPresetWish()" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-bic-teal text-slate-800 text-sm">
+                                    <option value="custom">Tự soạn lời chúc riêng hoặc chọn mẫu..</option>
+                                    <option value="1">Dành tặng Nữ Đồng nghiệp</option>                                    
+                                    <option value="2">Dành tặng Lãnh đạo nữ xuất sắc</option>                                    
+                                </select>
+                            </div>
+
+                            <!-- Lời chúc chi tiết -->
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                    Nội dung lời chúc
+                                </label>
+                                <textarea id="customWishText" rows="3" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-bic-teal text-slate-800 text-sm" oninput="updateCardPreview()">Chúc mừng chị em có một ngày lễ 20/10 thật vui vẻ!.</textarea>
+                            </div>
+
+                            <!-- Người gửi -->
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                    Người gửi (Ký tặng)
+                                </label>
+                                <input type="text" id="senderNameInput" placeholder="Nhập tên người gửi" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-bic-teal text-slate-800 text-sm font-semibold" oninput="updateCardPreview()">
+                            </div>
+
+                            <!-- Nhóm nút -->
+                            <div class="pt-2 flex flex-col sm:flex-row gap-3">
+                                <button onclick="copyGreetingWish()" class="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition active:scale-95">
+                                    <i class="fa-regular fa-copy text-bic-teal"></i>
+                                    Lời Chúc Tạo Bởi AI
+                                </button>
+                                <button onclick="downloadCardImage()" class="flex-1 py-3 px-4 rounded-xl bg-bic-gold hover:bg-bic-golddark text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition active:scale-95">
+                                    <i class="fa-solid fa-download"></i>
+                                    Thiệp Tạo Bởi AI
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột Xem Trước Thiệp Thực Tế (Render với Logo nạp từ Ảnh) -->
+                    <div class="lg:col-span-7 flex flex-col items-center">
+                        <div class="w-full text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
+                            <span><i class="fa-solid fa-eye text-bic-teal mr-1"></i> Thiệp được tạo bởi VSCode:</span>
+                            <span class="text-bic-gold">Hãy chụp ảnh màn hình</span>
+                        </div>
+
+                        <!-- KHUNG THIỆP HTML (ĐÃ CĂN CHỈNH FLEX HOÀN HẢO ĐỂ KHÔNG BỊ LỆCH) -->
+                        <div id="greetingCardExport" class="w-full max-w-xl aspect-[1.414/1] bg-gradient-to-br from-white via-[#f0faf8] to-[#d8f2ed] rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border-4 border-white flex flex-col justify-between">
+                            
+                            <!-- Họa tiết dải lụa góc trái của tấm thiệp -->
+                            <svg class="absolute -bottom-8 -right-1 w-44 h-44 opacity-80" viewBox="0 0 450 500" fill="none">
+                                <path d="M 261 294 
+           C 275 282, 335 220, 390 140 
+           C 440 68, 480 92, 500 102 
+           L 500 282 
+           C 440 270, 330 268, 261 294 Z" fill="url(#yellow-grad)" filter="url(#yellow-shadow)" />
+
+  <!-- Dải sóng uốn lượn màu xanh ngọc ở dưới -->
+  <path d="M 32 560 
+           C 30 500, 70 425, 175 375 
+           C 280 325, 385 305, 420 307 
+           C 410 320, 310 330, 240 375 
+           C 180 415, 210 520, 215 560 
+           Z" fill="url(#teal-wave-grad)" filter="url(#wave-shadow)" />
+
+  <!-- Lớp ánh sáng (highlight) viền trên của sóng ngọc -->
+  <path d="M 32 560 
+           C 30 500, 70 425, 175 375 
+           C 280 325, 385 305, 420 307 
+           C 350 315, 260 340, 185 390 
+           C 110 440, 65 500, 52 560 
+           Z" fill="url(#highlight-grad)" />
+                            </svg>
+
+                            <!-- Họa tiết dải lụa góc phải của tấm thiệp -->
+                            <svg class="absolute -bottom-0 -left-0 w-44 h-44 opacity-80" viewBox="0 0 500 500" fill="none" transform="scale(-1, 1)">
+                                <path d="M 261 294 
+           C 275 282, 335 220, 390 140 
+           C 440 68, 480 92, 500 102 
+           L 500 282 
+           C 440 270, 330 268, 261 294 Z" fill="url(#yellow-grad)" filter="url(#yellow-shadow)" />
+
+  <!-- Dải sóng uốn lượn màu xanh ngọc ở dưới -->
+  <path d="M 32 560 
+           C 30 500, 70 425, 175 375 
+           C 280 325, 385 305, 420 307 
+           C 410 320, 310 330, 240 375 
+           C 180 415, 210 520, 215 560 
+           Z" fill="url(#teal-wave-grad)" filter="url(#wave-shadow)" />
+
+  <!-- Lớp ánh sáng (highlight) viền trên của sóng ngọc -->
+  <path d="M 32 560 
+           C 30 500, 70 425, 175 375 
+           C 280 325, 385 305, 420 307 
+           C 350 315, 260 340, 185 390 
+           C 110 440, 65 500, 52 560 
+           Z" fill="url(#highlight-grad)" />
+                            </svg>
+
+                            <!-- Header của thiệp: LOGO BIC NHÚNG TRỰC TIẾP TỪ ẢNH -->
+                            <div class="relative z-10 flex items-center justify-between border-b border-teal-200/60 pb-3">
+                                <div class="flex items-center gap-2">
+                                    <img id="cardBicLogo" alt="Logo BIC" class="h-7 w-auto object-contain">
+                                    <div class="pl-2 border-l border-bic-teal/30">
+                                        <div class="text-[9px] font-bold text-bic-teal tracking-wider uppercase">CÔNG TY BẢO HIỂM BIDV BẮC TRUNG BỘ</div>
+                                        <div class="text-[8px] font-semibold text-bic-gold tracking-widest uppercase"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="inline-block px-2.5 py-0.5 rounded-full bg-bic-gold/20 text-bic-golddark text-[10px] font-extrabold uppercase">
+                                        20 THÁNG 10
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Thân thiệp: Dàn xếp căn giữa tuyệt đối, không có tình trạng bị xô lệch dòng -->
+                            <div class="relative z-10 my-auto py-2 text-center flex flex-col justify-center items-center">
+                                <div class="text-bic-gold font-script text-2xl sm:text-3xl mb-0.5">Thân gửi lời chúc mừng tới</div>
+                                
+                                <h3 id="cardRecipientName" class="text-xl sm:text-2xl font-black text-bic-teal uppercase tracking-wide">
+                                    
+                                </h3>
+
+                                <div id="cardRecipientDept" class="text-xs text-slate-500 font-semibold mb-2">
+                                    
+                                </div>
+
+                                <div class="w-full max-w-md mx-auto p-3 bg-white/80 rounded-2xl border border-teal-100 shadow-sm flex items-center justify-center min-h-[64px]">
+                                    <p id="cardWishBody" class="text-xs sm:text-sm text-slate-700 leading-relaxed italic text-center">
+                                        
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Chân thiệp -->
+                            <div class="relative z-10 flex items-end justify-between pt-2 border-t border-teal-200/50 text-[10px] text-slate-500">
+                                <div>
+                                    <span class="italic" id="cardLocationDate">Nghệ An, ngày 20 tháng 10 năm 2026</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[9px] uppercase tracking-wider text-slate-400">Trân trọng gửi tặng:</div>
+                                    <div id="cardSenderName" class="font-bold text-bic-teal text-xs">
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-xs text-slate-500 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check text-bic-teal"></i>
+                            <span>Mẫu thiệp được tạo bởi <strong>AI</strong> và <strong>VSCode</strong> do đó sẽ không đồng nhất về nhận diện thương hiệu.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: ĐỊA BÀN PHỤ TRÁCH BIC BẮC TRUNG BỘ (NGHỆ AN & HÀ TĨNH) -->
+        <section id="dia-ban" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-14">
+                    <span class="text-xs font-bold uppercase tracking-widest text-bic-teal bg-bic-softteal px-4 py-1.5 rounded-full">
+                        Địa Bàn Phụ Trách
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3">
+                        Đồng Hành Cùng Quý Khách Hàng
+                    </h2>
+                    <p class="text-slate-600 mt-3 text-base">
+                        Công ty Bảo hiểm BIDV Bắc Trung Bộ phụ trách toàn diện công tác bảo hiểm phi nhân thọ trên 2 tỉnh thành trọng điểm:
+                    </p>
+                </div>
+
+                <!-- 2 Cột đại diện: Nghệ An & Hà Tĩnh -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    <!-- Khối Nghệ An -->
+                    <div class="p-8 rounded-3xl bg-gradient-to-br from-slate-50 to-[#f0faf7] border border-teal-100 hover:shadow-xl transition-all duration-300">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-2xl bg-bic-teal text-white flex items-center justify-center text-xl font-black">
+                                NA
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-900">Khu Vực Nghệ An</h3>
+                                <p class="text-xs text-bic-gold font-bold uppercase tracking-wider">Trụ sở Công ty & Các Phòng Kinh doanh trên địa bàn</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                            Phục vụ hàng vạn khách hàng cá nhân và doanh nghiệp trên địa bàn TP. Vinh, Cửa Lò, Diễn Châu, Quỳnh Lưu, Đô Lương, Nam Đàn... Đội ngũ nữ cán bộ luôn tận tụy, tư vấn chu đáo và giải quyết bồi thường nhanh chóng.
+                        </p>
+                        <div class="flex items-center gap-2 text-xs font-semibold text-bic-teal">
+                            <i class="fa-solid fa-map-pin text-bic-gold"></i>
+                            <span>Địa chỉ trọng điểm: Phường Trường Vinh, tỉnh Nghệ An</span>
+                        </div>
+                    </div>
+
+                    <!-- Khối Hà Tĩnh -->
+                    <div class="p-8 rounded-3xl bg-gradient-to-br from-slate-50 to-[#fff8ed] border border-amber-100 hover:shadow-xl transition-all duration-300">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-2xl bg-bic-gold text-white flex items-center justify-center text-xl font-black">
+                                HT
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-900">Khu Vực Hà Tĩnh</h3>
+                                <p class="text-xs text-bic-teal font-bold uppercase tracking-wider">Phòng Kinh doanh khu vực</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                            Mạng lưới phủ rộng khắp TP. Hà Tĩnh, Kỳ Anh, Hồng Lĩnh, Can Lộc, Nghi Xuân... Đội ngũ nữ cán bộ BIC Hà Tĩnh nhiệt tình, gắn bó mật thiết với chi nhánh BIDV đối tác để mang lại giải pháp tài chính an tâm nhất.
+                        </p>
+                        <div class="flex items-center gap-2 text-xs font-semibold text-bic-gold">
+                            <i class="fa-solid fa-map-pin text-bic-teal"></i>
+                            <span>Địa chỉ trọng điểm: Phường Thành Sen, tỉnh Hà Tĩnh</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Banner chúc mừng 20/10 cuối trang -->
+                <div class="mt-14 rounded-3xl bg-gradient-to-r from-bic-teal via-bic-darkteal to-[#002e2c] text-white p-8 sm:p-12 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div class="max-w-2xl">
+                        <span class="text-xs font-bold text-bic-accentyellow uppercase tracking-widest">
+                            BIC Bắc Trung Bộ
+                        </span>
+                        <h3 class="text-2xl sm:text-3xl font-extrabold mt-2 leading-tight">
+                            "Kính Chúc Toàn Thể Phái Đẹp BIC Bắc Trung Bộ có một ngày lễ 20/10 Rực Rỡ, Hạnh Phúc & Thành Công!"
+                        </h3>
+                        <p class="text-teal-100 text-sm mt-3 leading-relaxed">
+                            Cảm ơn các chị em đã luôn thắp sáng ngọn lửa nhiệt huyết, tận tâm cống hiến vì sự phát triển thịnh vượng của ngôi nhà chung BIC.
+                        </p>
+                    </div>
+                    <div>
+                        <button onclick="launchSparkles()" class="px-8 py-4 bg-bic-gold hover:bg-bic-accentyellow text-white hover:text-slate-900 font-extrabold rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center gap-3 whitespace-nowrap">
+                            <i class="fa-solid fa-champagne-glasses text-xl"></i>
+                            Chúc Mừng 20/10!
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER: ĐẦY ĐỦ THÔNG TIN THƯƠNG HIỆU BIC BẮC TRUNG BỘ (NGHỆ AN & HÀ TĨNH) -->
+    <footer class="bg-slate-900 text-slate-300 pt-16 pb-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-slate-800">
+                <!-- Cột giới thiệu công ty -->
+                <div class="lg:col-span-5">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img id="footerBicLogo" alt="Logo BIC" class="h-9 w-auto object-contain">
+                        <div class="pl-3 border-l border-slate-700">
+                            <div class="text-xs font-bold text-white uppercase tracking-wider">CÔNG TY BẢO HIỂM BIDV BẮC TRUNG BỘ</div>
+                            <div class="text-[10px] text-bic-gold uppercase tracking-widest font-semibold"></div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-400 leading-relaxed mb-5">
+                        Đơn vị thành viên Tổng Công ty Bảo hiểm BIDV (BIC) - Ngân hàng TMCP Đầu tư và Phát triển Việt Nam (BIDV). Phụ trách địa bàn 2 tỉnh Nghệ An và Hà Tĩnh.
+                    </p>
+
+                    <!-- Kết nối Facebook & TikTok -->
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-bold uppercase text-slate-400 tracking-wider">Kênh truyền thông:</span>
+                        <a href="https://www.facebook.com/profile.php?id=61587655791469" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-xl bg-[#1877F2]/20 text-[#1877F2] hover:bg-[#1877F2] hover:text-white flex items-center justify-center transition" title="Facebook BIC">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </a>
+                        <a href="https://www.tiktok.com/@bicbtb2007" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-xl bg-slate-800 text-slate-200 hover:bg-black hover:text-[#00f2fe] flex items-center justify-center border border-slate-700 transition" title="TikTok BIC">
+                            <i class="fa-brands fa-tiktok"></i>
+                        </a>
+                        <button onclick="openSocialModal()" class="w-9 h-9 rounded-xl bg-amber-500/20 text-bic-gold hover:bg-bic-gold hover:text-white flex items-center justify-center transition" title="Quét mã QR">
+                            <i class="fa-solid fa-qrcode"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cột liên kết nhanh -->
+                <div class="lg:col-span-3">
+                    <h4 class="text-sm font-bold uppercase tracking-wider text-white mb-4">
+                        Chuyên Mục 20/10
+                    </h4>
+                    <ul class="space-y-2.5 text-sm">
+                        <li><a href="#backdrop" class="hover:text-bic-gold transition">Backdrop Lễ Kỷ Niệm</a></li>
+                        <li><a href="#thu-chuc-mung" class="hover:text-bic-gold transition">Thư Chúc Mừng Từ Ban Giám Đốc</a></li>
+                        <li><a href="#tao-thiep" class="hover:text-bic-gold transition">Tạo Thiệp Online</a></li>
+                        <li><a href="#dia-ban" class="hover:text-bic-gold transition">Địa bàn phụ trách</a></li>
+                    </ul>
+                </div>
+
+                <!-- Cột thông tin liên hệ Nghệ An & Hà Tĩnh -->
+                <div class="lg:col-span-4">
+                    <h4 class="text-sm font-bold uppercase tracking-wider text-white mb-4">
+                        Địa Bàn Trọng Điểm
+                    </h4>
+                    <ul class="space-y-3 text-sm text-slate-400">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-location-dot text-bic-gold mt-1"></i>
+                            <span>Địa bàn phụ trách: Tỉnh Nghệ An và Tỉnh Hà Tĩnh</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fa-solid fa-phone text-bic-gold"></i>
+                            <span>Tổng đài CSKH 24/7: 1900 9456</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fa-solid fa-globe text-bic-gold"></i>
+                            <span>Cổng thông tin: bic.vn</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bản quyền -->
+            <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+                <p>© 2026 Công ty Bảo hiểm BIDV Bắc Trung Bộ. Chào mừng Ngày Phụ Nữ Việt Nam 20/10.</p>
+                <p class="text-slate-400">Vững niềm tin - Trọn yêu thương</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL POPUP MÃ QR FACEBOOK & TIKTOK -->
+    <div id="socialModal" class="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-teal-100 transform scale-95 transition-transform duration-300 relative" id="socialModalContent">
+            
+            <button onclick="closeSocialModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-bic-softteal text-bic-teal text-xl mb-2">
+                    <i class="fa-solid fa-hashtag"></i>
+                </div>
+                <h3 class="text-xl font-extrabold text-bic-teal uppercase">Kết Nối Mạng Xã Hội</h3>
+                <p class="text-xs text-slate-500 mt-1">Theo dõi BIC Bắc Trung Bộ trên nền tảng Facebook & TikTok</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Facebook Card -->
+                <div class="p-4 rounded-2xl bg-blue-50/70 border border-blue-100 flex flex-col items-center text-center">
+                    <div class="w-10 h-10 rounded-full bg-[#1877F2] text-white flex items-center justify-center text-lg shadow-md mb-2">
+                        <i class="fa-brands fa-facebook-f"></i>
+                    </div>
+                    <div class="text-sm font-bold text-slate-800">Facebook Chính Thức</div>
+                    <div class="text-[11px] text-slate-500 mb-3">BIC Bắc Trung Bộ</div>
+                    <!-- QR Facebook -->
+                    <div class="bg-white p-2 rounded-xl border border-blue-200 shadow-inner mb-3">
+                        <svg class="w-24 h-24" viewBox="0 0 100 100">
+                            <rect width="100" height="100" fill="#ffffff"/>
+                            <rect x="10" y="10" width="24" height="24" fill="#1877F2"/>
+                            <rect x="14" y="14" width="16" height="16" fill="#ffffff"/>
+                            <rect x="18" y="18" width="8" height="8" fill="#1877F2"/>
+                            <rect x="66" y="10" width="24" height="24" fill="#1877F2"/>
+                            <rect x="70" y="14" width="16" height="16" fill="#ffffff"/>
+                            <rect x="74" y="18" width="8" height="8" fill="#1877F2"/>
+                            <rect x="10" y="66" width="24" height="24" fill="#1877F2"/>
+                            <rect x="14" y="70" width="16" height="16" fill="#ffffff"/>
+                            <rect x="18" y="74" width="8" height="8" fill="#1877F2"/>
+                            <rect x="42" y="14" width="6" height="6" fill="#1877F2"/>
+                            <rect x="52" y="24" width="6" height="6" fill="#1877F2"/>
+                            <rect x="42" y="44" width="16" height="16" fill="#1877F2"/>
+                            <rect x="66" y="44" width="6" height="6" fill="#1877F2"/>
+                            <rect x="78" y="56" width="12" height="6" fill="#1877F2"/>
+                            <rect x="42" y="72" width="6" height="14" fill="#1877F2"/>
+                            <rect x="56" y="72" width="14" height="6" fill="#1877F2"/>
+                        </svg>
+                    </div>
+                    <a href="https://www.facebook.com/profile.php?id=61587655791469" target="_blank" rel="noopener noreferrer" class="w-full py-2 px-3 bg-[#1877F2] hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition">
+                        Vào Facebook
+                    </a>
+                </div>
+
+                <!-- TikTok Card -->
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col items-center text-center">
+                    <div class="w-10 h-10 rounded-full bg-black text-[#00f2fe] flex items-center justify-center text-lg shadow-md mb-2">
+                        <i class="fa-brands fa-tiktok"></i>
+                    </div>
+                    <div class="text-sm font-bold text-slate-800">Kênh TikTok</div>
+                    <div class="text-[11px] text-slate-500 mb-3">BIC Bắc Trung Bộ</div>
+                    <!-- QR TikTok -->
+                    <div class="bg-white p-2 rounded-xl border border-slate-300 shadow-inner mb-3">
+                        <svg class="w-24 h-24" viewBox="0 0 100 100">
+                            <rect width="100" height="100" fill="#ffffff"/>
+                            <rect x="10" y="10" width="24" height="24" fill="#000000"/>
+                            <rect x="14" y="14" width="16" height="16" fill="#ffffff"/>
+                            <rect x="18" y="18" width="8" height="8" fill="#ff0050"/>
+                            <rect x="66" y="10" width="24" height="24" fill="#000000"/>
+                            <rect x="70" y="14" width="16" height="16" fill="#ffffff"/>
+                            <rect x="74" y="18" width="8" height="8" fill="#00f2fe"/>
+                            <rect x="10" y="66" width="24" height="24" fill="#000000"/>
+                            <rect x="14" y="70" width="16" height="16" fill="#ffffff"/>
+                            <rect x="18" y="74" width="8" height="8" fill="#000000"/>
+                            <rect x="42" y="18" width="6" height="6" fill="#000000"/>
+                            <rect x="52" y="12" width="6" height="12" fill="#00f2fe"/>
+                            <rect x="42" y="44" width="16" height="16" fill="#ff0050"/>
+                            <rect x="68" y="48" width="8" height="8" fill="#000000"/>
+                            <rect x="44" y="68" width="10" height="18" fill="#00f2fe"/>
+                        </svg>
+                    </div>
+                    <a href="https://www.tiktok.com/@bicbtb2007" target="_blank" rel="noopener noreferrer" class="w-full py-2 px-3 bg-black hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition">
+                        Vào TikTok
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-5 text-center text-xs text-slate-500">
+                <span>Truy cập theo dõi các tin tức của BIC Bắc Trung Bộ nhé!</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST THÔNG BÁO (THAY THẾ ALERT) -->
+    <div id="toastNotice" class="fixed top-24 right-5 z-50 bg-slate-900/95 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-teal-500/30 transform translate-y-[-150%] opacity-0 pointer-events-none transition-all duration-300">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-bic-accentyellow text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Nội dung thông báo</span>
+    </div>
+
+    <!-- JAVASCRIPT: LOGO CHUẨN XÁC, HIỆU ỨNG CÁNH HOA & VẼ THIỆP CHUẨN XÁC KHÔNG LỆCH CHỮ -->
+    <script>
+        // --- 1. ĐỊNH NGHĨA ẢNH LOGO BIC CHÍNH XÁC 100% THEO ẢNH 2 (SVG DATA URL) ---
+        // Chữ BIC màu xanh ngọc sẫm (#006059) + Biểu tượng hình thoi cánh lưỡi liềm bên phải gồm 2 dải lồng nhau (cam #E88A1A và xanh ngọc #006059) với tâm tròn rỗng
+        const BIC_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1005.34 362.65" fill="none">
+            <g>
+	<path style="fill:#006C69;" d="M352.02,134.75c11.49-5.28,17.93-16.19,17.93-30.82c0-9.48-3.65-18-10.27-23.98
+		c-7.3-6.61-18.08-10.1-31.18-10.1h-53.45c-4.22,0-7.64,3.42-7.64,7.64v121.62c0,4.22,3.42,7.64,7.64,7.64h55.91
+		c29.94,0,43.34-19.29,43.34-38.41C374.3,153.01,365.59,140.23,352.02,134.75 M322.46,125.77h-27.51V92.48h27.32
+		c13.35,0,19.57,5.08,19.57,15.98C341.85,119.94,335.33,125.77,322.46,125.77 M346.76,165.5c0,12.36-7.6,18.62-22.6,18.62h-29.21
+		v-38.01h29.21C338.52,146.12,346.76,153.18,346.76,165.5"/>
+	<path style="fill:#006C69;" d="M407.97,69.86h-19.9v129.25c0,4.22,3.43,7.64,7.64,7.64h19.91V77.5
+		C415.62,73.28,412.19,69.86,407.97,69.86"/>
+	<path style="fill:#006C69;" d="M538.82,161.77h-19.71l-0.55,1.56c-2.96,8.39-8.92,19.54-26.51,19.54
+		c-11.31,0-19.93-4.66-25.62-13.84c-4.76-7.67-7.37-18.66-7.37-30.92c0-41.15,24.69-44.35,32.25-44.35
+		c14.42,0,23.34,6.46,27.27,19.75l0.5,1.68h20.07c2.22,0,4.27-1.01,5.61-2.79c1.33-1.75,1.76-3.98,1.17-6.09
+		c-2.95-10.55-8.97-19.45-17.42-25.73c-9.56-7.11-21.8-10.71-36.37-10.71c-19.7,0-36.05,7.28-47.27,21.05
+		c-9.98,12.25-15.48,29.3-15.48,48.03c0,19.41,5.26,35.98,15.2,47.92c10.83,13.01,26.9,19.89,46.44,19.89
+		c27.19,0,46.53-12.68,54.44-35.7c0.74-2.16,0.4-4.47-0.93-6.34C543.23,162.87,541.09,161.77,538.82,161.77"/>
+	<path style="fill:#006C69;" d="M686.62,82.49c-1.04-1.76-6.73-10.25-8.57-12.51c-6.08-7.49-11.59-13.1-11.59-13.1
+		c-9.6-10.27-25.17-10.27-34.78,0l-3.76,4.02c-0.02,0.01-0.03,0.03-0.04,0.04l-21.33,25.97c-0.6,0.72,0.14,1.77,1.03,1.45
+		c6.76-2.43,13.56-4.02,20.07-4.63c20.35-1.89,39.74,4,53.19,16.15c8.41,7.59,13.94,17.22,16.1,27.76c0.22,1.07,1.78,0.95,1.83-0.14
+		c0.14-3.33,0.06-6.73-0.26-10.15C697.47,106.04,693.22,93.73,686.62,82.49"/>
+	<path style="fill:#F9A61B;" d="M704.88,175.85c1.76-1.04,10.24-6.73,12.51-8.57c7.49-6.08,13.1-11.59,13.1-11.59
+		c10.27-9.6,10.27-25.17,0-34.78l-4.02-3.76c-0.01-0.02-0.03-0.03-0.04-0.04l-25.97-21.33c-0.72-0.6-1.77,0.14-1.45,1.03
+		c2.43,6.76,4.02,13.56,4.63,20.07c1.89,20.35-4,39.74-16.15,53.19c-7.59,8.41-17.22,13.94-27.76,16.1
+		c-1.06,0.22-0.95,1.78,0.14,1.83c3.33,0.14,6.73,0.06,10.15-0.26C681.33,186.7,693.64,182.46,704.88,175.85"/>
+	<path style="fill:#006C69;" d="M611.52,194.11c1.04,1.76,6.73,10.25,8.57,12.51c6.08,7.49,11.59,13.1,11.59,13.1
+		c9.6,10.27,25.17,10.27,34.78,0l3.76-4.02c0.02-0.01,0.03-0.03,0.04-0.04l21.33-25.97c0.6-0.72-0.14-1.77-1.03-1.45
+		c-6.76,2.43-13.56,4.02-20.07,4.63c-20.35,1.89-39.74-4-53.19-16.15c-8.41-7.59-13.94-17.22-16.1-27.76
+		c-0.22-1.07-1.78-0.95-1.83,0.14c-0.14,3.33-0.06,6.73,0.26,10.15C600.67,170.56,604.92,182.88,611.52,194.11"/>
+	<path style="fill:#F9A61B;" d="M593.26,100.75c-1.76,1.04-10.25,6.73-12.51,8.57c-7.49,6.08-13.1,11.59-13.1,11.59
+		c-10.27,9.6-10.27,25.17,0,34.78l4.02,3.76c0.01,0.02,0.03,0.03,0.04,0.04l25.97,21.33c0.72,0.6,1.77-0.14,1.45-1.03
+		c-2.43-6.76-4.02-13.56-4.63-20.07c-1.89-20.35,4-39.74,16.15-53.19c7.59-8.41,17.22-13.94,27.76-16.1
+		c1.07-0.22,0.95-1.78-0.14-1.83c-3.33-0.14-6.73-0.06-10.15,0.26C616.81,89.9,604.5,94.15,593.26,100.75"/>
+</g>
+<rect x="-0.07" y="-0.72" style="fill:none;" width="1005.34" height="364.21"/>
+<g>
+	<g>
+		<path style="fill:#006C69;" d="M283.27,291.89h-10.4l-0.06-5.73h8.74c1.54,0,2.8-0.2,3.78-0.6c0.98-0.4,1.72-0.98,2.21-1.75
+			c0.49-0.77,0.74-1.71,0.74-2.82c0-1.26-0.24-2.28-0.71-3.06c-0.47-0.78-1.21-1.34-2.2-1.7c-0.99-0.35-2.27-0.53-3.83-0.53h-5.79
+			v33.97h-8.35v-40.51h14.13c2.35,0,4.47,0.22,6.33,0.67s3.44,1.12,4.74,2.03c1.3,0.91,2.29,2.05,2.98,3.44
+			c0.69,1.38,1.03,3.02,1.03,4.91c0,1.67-0.38,3.21-1.13,4.62c-0.75,1.41-1.93,2.56-3.53,3.45c-1.6,0.89-3.7,1.38-6.27,1.47
+			L283.27,291.89z M282.91,309.67h-12.32l3.25-6.51h9.07c1.46,0,2.66-0.24,3.59-0.71c0.93-0.47,1.61-1.12,2.06-1.93
+			c0.45-0.82,0.67-1.75,0.67-2.81c0-1.19-0.2-2.22-0.6-3.09s-1.03-1.54-1.91-2.02c-0.87-0.47-2.02-0.71-3.45-0.71h-8.04l0.06-5.73
+			h10.02l1.92,2.25c2.47-0.04,4.46,0.39,5.97,1.29c1.51,0.9,2.61,2.06,3.31,3.49c0.7,1.43,1.04,2.96,1.04,4.59
+			c0,2.6-0.57,4.78-1.7,6.55c-1.13,1.77-2.79,3.1-4.97,3.99C288.7,309.22,286.05,309.67,282.91,309.67z"/>
+		<path style="fill:#006C69;" d="M320.65,276.09l-11.02,33.58h-8.87l15.05-40.51h5.65L320.65,276.09z M329.3,294.59v6.54h-21.39
+			v-6.54H329.3z M324.07,260.54h5.29c0,1.26-0.39,2.38-1.17,3.35c-0.78,0.97-1.89,1.73-3.34,2.27c-1.45,0.54-3.16,0.81-5.15,0.81
+			c-1.98,0-3.71-0.27-5.16-0.81c-1.46-0.54-2.57-1.29-3.35-2.27s-1.17-2.09-1.17-3.35h5.26c0,0.82,0.33,1.54,0.99,2.18
+			c0.66,0.64,1.8,0.96,3.44,0.96c1.59,0,2.72-0.32,3.38-0.96S324.07,261.35,324.07,260.54z M317.48,260.45l3.45-5.26h5.62l-4.9,5.26
+			H317.48z M329.8,309.67l-11.04-33.58l-0.89-6.93h5.7l15.13,40.51H329.8z"/>
+		<path style="fill:#006C69;" d="M366.34,296.23h8.32c-0.17,2.73-0.91,5.15-2.24,7.26s-3.17,3.76-5.54,4.95
+			c-2.36,1.19-5.21,1.78-8.53,1.78c-2.6,0-4.92-0.45-6.98-1.35c-2.06-0.9-3.82-2.19-5.27-3.88c-1.46-1.69-2.56-3.73-3.32-6.12
+			c-0.76-2.39-1.14-5.07-1.14-8.04v-2.81c0-2.97,0.39-5.65,1.18-8.05c0.79-2.4,1.92-4.45,3.39-6.13c1.47-1.69,3.24-2.99,5.3-3.89
+			c2.06-0.91,4.36-1.36,6.9-1.36c3.38,0,6.23,0.61,8.55,1.84c2.33,1.22,4.14,2.91,5.42,5.06s2.06,4.6,2.32,7.34h-8.32
+			c-0.11-1.63-0.45-3.02-1-4.16c-0.56-1.14-1.4-2-2.52-2.59c-1.12-0.58-2.61-0.88-4.46-0.88c-1.39,0-2.61,0.26-3.64,0.78
+			c-1.04,0.52-1.91,1.31-2.62,2.36c-0.71,1.06-1.23,2.39-1.57,3.99c-0.34,1.6-0.51,3.48-0.51,5.63v2.87c0,2.1,0.16,3.94,0.47,5.52
+			c0.32,1.59,0.8,2.92,1.46,4.01c0.66,1.08,1.51,1.9,2.56,2.45s2.31,0.82,3.8,0.82c1.74,0,3.18-0.28,4.31-0.83
+			c1.13-0.56,2-1.38,2.6-2.48C365.87,299.23,366.23,297.86,366.34,296.23z"/>
+		<path style="fill:#006C69;" d="M425.67,269.16v6.54h-33.05v-6.54H425.67z M413.21,269.16v40.51h-8.32v-40.51H413.21z"/>
+		<path style="fill:#006C69;" d="M430.8,269.16h15.11c3.1,0,5.76,0.46,8,1.39c2.23,0.93,3.95,2.3,5.16,4.12
+			c1.21,1.82,1.81,4.05,1.81,6.71c0,2.17-0.37,4.03-1.1,5.58c-0.73,1.55-1.76,2.84-3.09,3.87s-2.88,1.85-4.66,2.46l-2.64,1.39
+			h-13.13l-0.06-6.51h9.77c1.46,0,2.68-0.26,3.64-0.78c0.96-0.52,1.69-1.24,2.18-2.17c0.49-0.93,0.74-2,0.74-3.23
+			c0-1.3-0.24-2.42-0.72-3.37c-0.48-0.95-1.21-1.67-2.2-2.17c-0.98-0.5-2.22-0.75-3.7-0.75h-6.76v33.97h-8.35V269.16z
+			 M453.44,309.67l-9.24-18.06l8.82-0.06l9.35,17.72v0.39H453.44z"/>
+		<path style="fill:#006C69;" d="M490.06,269.16h8.32v26.76c0,3.12-0.66,5.74-1.99,7.87c-1.33,2.13-3.15,3.74-5.48,4.81
+			c-2.33,1.08-5,1.61-8.03,1.61c-3.02,0-5.71-0.54-8.05-1.61c-2.35-1.08-4.18-2.68-5.51-4.81c-1.33-2.13-1.99-4.76-1.99-7.87v-26.76
+			h8.35v26.76c0,1.82,0.29,3.3,0.86,4.45c0.57,1.15,1.41,1.99,2.49,2.53c1.08,0.54,2.37,0.81,3.85,0.81c1.52,0,2.81-0.27,3.88-0.81
+			c1.07-0.54,1.88-1.38,2.45-2.53c0.57-1.15,0.85-2.63,0.85-4.45V269.16z"/>
+		<path style="fill:#006C69;" d="M538.62,269.16v40.51h-8.35L514,282.52v27.15h-8.35v-40.51H514l16.3,27.18v-27.18H538.62z"/>
+		<path style="fill:#006C69;" d="M578.36,288.5v16.05c-0.63,0.76-1.6,1.58-2.92,2.46c-1.32,0.88-3.01,1.64-5.09,2.27
+			c-2.08,0.63-4.59,0.95-7.54,0.95c-2.62,0-5-0.43-7.15-1.29s-4-2.13-5.55-3.8c-1.55-1.67-2.74-3.71-3.58-6.13
+			c-0.83-2.42-1.25-5.19-1.25-8.3v-2.53c0-3.12,0.4-5.89,1.21-8.32c0.81-2.43,1.96-4.48,3.46-6.15c1.5-1.67,3.29-2.94,5.37-3.81
+			c2.08-0.87,4.39-1.31,6.93-1.31c3.52,0,6.42,0.57,8.68,1.71s3.99,2.72,5.19,4.73s1.93,4.32,2.21,6.91h-8.1
+			c-0.2-1.37-0.59-2.57-1.17-3.59c-0.58-1.02-1.4-1.82-2.46-2.39c-1.07-0.57-2.44-0.86-4.13-0.86c-1.39,0-2.63,0.28-3.71,0.85
+			c-1.08,0.57-2,1.4-2.74,2.49c-0.74,1.09-1.31,2.45-1.7,4.06s-0.58,3.49-0.58,5.62v2.59c0,2.11,0.2,3.98,0.61,5.61
+			c0.41,1.62,1.01,2.99,1.82,4.09c0.81,1.1,1.8,1.93,2.99,2.49c1.19,0.56,2.57,0.83,4.15,0.83c1.32,0,2.42-0.11,3.3-0.33
+			c0.88-0.22,1.59-0.5,2.14-0.82c0.55-0.32,0.97-0.63,1.27-0.93v-7.18h-7.62v-5.95H578.36z"/>
+		<path style="fill:#006C69;" d="M615.91,291.89H605.5l-0.06-5.73h8.74c1.54,0,2.8-0.2,3.78-0.6c0.98-0.4,1.72-0.98,2.21-1.75
+			c0.49-0.77,0.74-1.71,0.74-2.82c0-1.26-0.24-2.28-0.71-3.06s-1.21-1.34-2.2-1.7c-0.99-0.35-2.27-0.53-3.83-0.53h-5.79v33.97h-8.35
+			v-40.51h14.13c2.36,0,4.47,0.22,6.33,0.67c1.86,0.45,3.44,1.12,4.74,2.03c1.3,0.91,2.29,2.05,2.98,3.44
+			c0.69,1.38,1.03,3.02,1.03,4.91c0,1.67-0.38,3.21-1.13,4.62c-0.75,1.41-1.93,2.56-3.53,3.45c-1.6,0.89-3.7,1.38-6.27,1.47
+			L615.91,291.89z M615.54,309.67h-12.32l3.25-6.51h9.07c1.46,0,2.66-0.24,3.59-0.71c0.93-0.47,1.61-1.12,2.06-1.93
+			c0.45-0.82,0.67-1.75,0.67-2.81c0-1.19-0.2-2.22-0.6-3.09c-0.4-0.87-1.03-1.54-1.91-2.02c-0.87-0.47-2.02-0.71-3.45-0.71h-8.04
+			l0.06-5.73h10.01l1.92,2.25c2.47-0.04,4.46,0.39,5.97,1.29c1.51,0.9,2.62,2.06,3.31,3.49c0.7,1.43,1.04,2.96,1.04,4.59
+			c0,2.6-0.57,4.78-1.7,6.55c-1.13,1.77-2.79,3.1-4.97,3.99C621.34,309.22,618.68,309.67,615.54,309.67z"/>
+		<path style="fill:#006C69;" d="M670.08,288.47v1.92c0,3.08-0.42,5.84-1.25,8.29c-0.83,2.45-2.01,4.53-3.53,6.25
+			s-3.33,3.03-5.44,3.94c-2.11,0.91-4.44,1.36-7,1.36c-2.54,0-4.86-0.46-6.97-1.36c-2.11-0.91-3.93-2.22-5.47-3.94
+			c-1.54-1.72-2.73-3.8-3.58-6.25s-1.27-5.21-1.27-8.29v-1.92c0-3.1,0.42-5.87,1.25-8.3c0.83-2.44,2.02-4.52,3.55-6.25
+			c1.53-1.73,3.35-3.04,5.45-3.95c2.1-0.91,4.43-1.36,6.97-1.36c2.56,0,4.89,0.46,7,1.36c2.1,0.91,3.92,2.23,5.45,3.95
+			c1.53,1.72,2.72,3.81,3.56,6.25C669.66,282.6,670.08,285.37,670.08,288.47z M655.12,258.28l8.4,7.73v0.33h-6.37l-4.37-4.06
+			l-4.31,4.06h-6.26v-0.42l8.26-7.65H655.12z M661.65,290.39v-1.98c0-2.15-0.19-4.04-0.58-5.68c-0.39-1.63-0.96-3-1.72-4.12
+			c-0.76-1.11-1.69-1.95-2.78-2.52c-1.09-0.57-2.35-0.85-3.76-0.85s-2.66,0.28-3.74,0.85c-1.09,0.57-2,1.41-2.75,2.52
+			c-0.75,1.11-1.32,2.49-1.71,4.12c-0.39,1.63-0.58,3.52-0.58,5.68v1.98c0,2.13,0.19,4.02,0.58,5.66s0.96,3.02,1.72,4.15
+			s1.69,1.97,2.78,2.54c1.09,0.58,2.35,0.86,3.76,0.86s2.66-0.29,3.76-0.86c1.09-0.57,2.01-1.42,2.75-2.54
+			c0.74-1.12,1.31-2.5,1.7-4.15S661.65,292.52,661.65,290.39z M648.44,316.21c0-1.08,0.41-1.97,1.22-2.68
+			c0.82-0.71,1.91-1.07,3.28-1.07c1.35,0,2.44,0.36,3.27,1.07c0.83,0.71,1.24,1.61,1.24,2.68c0,1.06-0.41,1.95-1.24,2.67
+			c-0.83,0.72-1.92,1.08-3.27,1.08c-1.37,0-2.47-0.36-3.28-1.08C648.85,318.15,648.44,317.26,648.44,316.21z"/>
+	</g>
+</g>
+        </svg>`;
+
+        // Logo phiên bản nền tối (Footer)
+        const BIC_LOGO_FOOTER_SVG = BIC_LOGO_SVG.replace(/fill="#006059"/g, 'fill="#2dd4bf"').replace(/fill="#ffffff"/g, 'fill="#0f172a"');
+
+        const bicLogoDataUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(BIC_LOGO_SVG);
+        const bicFooterLogoDataUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(BIC_LOGO_FOOTER_SVG);
+
+        // Nạp ảnh logo vào các thẻ <img> trên giao diện
+        const bicLogoImgObj = new Image();
+        bicLogoImgObj.src = bicLogoDataUrl;
+
+        document.getElementById('navBicLogo').src = bicLogoDataUrl;
+        document.getElementById('backdropBicLogo').src = bicLogoDataUrl;
+        document.getElementById('cardBicLogo').src = bicLogoDataUrl;
+        document.getElementById('footerBicLogo').src = bicFooterLogoDataUrl;
+
+        // --- 2. HIỆU ỨNG CÁNH HOA BAY TRÊN CANVAS ---
+        const canvas = document.getElementById('petalCanvas');
+        const ctx = canvas.getContext('2d');
+        let petals = [];
+        let petalsActive = true;
+        let animationFrameId;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Petal {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = -20 - Math.random() * 50;
+                this.size = Math.random() * 9 + 7;
+                this.speedY = Math.random() * 1.1 + 0.7;
+                this.speedX = Math.random() * 1.4 - 0.7;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = (Math.random() - 0.5) * 1.5;
+                const colors = [
+                    'rgba(255, 182, 193, 0.75)',
+                    'rgba(255, 192, 203, 0.8)',
+                    'rgba(255, 160, 180, 0.65)',
+                    'rgba(232, 138, 26, 0.4)', // Sắc cam BIC điểm xuyết
+                ];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += Math.sin(this.y * 0.01) * 0.8 + this.speedX;
+                this.rotation += this.rotationSpeed;
+
+                if (this.y > canvas.height + 20 || this.x < -20 || this.x > canvas.width + 20) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.bezierCurveTo(this.size / 2, -this.size / 2, this.size, -this.size / 4, this.size, this.size / 2);
+                ctx.bezierCurveTo(this.size, this.size, this.size / 2, this.size * 1.2, 0, this.size * 1.4);
+                ctx.bezierCurveTo(-this.size / 2, this.size * 1.2, -this.size, this.size, -this.size, this.size / 2);
+                ctx.bezierCurveTo(-this.size, -this.size / 4, -this.size / 2, -this.size / 2, 0, 0);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < 35; i++) {
+            const p = new Petal();
+            p.y = Math.random() * canvas.height;
+            petals.push(p);
+        }
+
+        function animatePetals() {
+            if (!petalsActive) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < petals.length; i++) {
+                petals[i].update();
+                petals[i].draw();
+            }
+            animationFrameId = requestAnimationFrame(animatePetals);
+        }
+
+        function togglePetals() {
+            petalsActive = !petalsActive;
+            const btnText = document.getElementById('petalBtnText');
+            if (petalsActive) {
+                btnText.textContent = "Cánh hoa: Bật";
+                animatePetals();
+                showToast("Đã bật cánh hoa rơi", "fa-check");
+            } else {
+                btnText.textContent = "Cánh hoa: Tắt";
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                cancelAnimationFrame(animationFrameId);
+                showToast("Đã tạm tắt cánh hoa", "fa-pause");
+            }
+        }
+
+        // --- 3. CÔNG CỤ TẠO THIỆP & XUẤT ẢNH HOÀN TOÀN KHÔNG BỊ LỆCH CHỮ ---
+        const recipientNameInput = document.getElementById('recipientNameInput');
+        const recipientAreaSelect = document.getElementById('recipientAreaSelect');
+        const recipientDeptInput = document.getElementById('recipientDeptInput');
+        const customWishText = document.getElementById('customWishText');
+        const senderNameInput = document.getElementById('senderNameInput');
+        const presetWishSelect = document.getElementById('presetWishSelect');
+
+        const cardRecipientName = document.getElementById('cardRecipientName');
+        const cardRecipientDept = document.getElementById('cardRecipientDept');
+        const cardWishBody = document.getElementById('cardWishBody');
+        const cardSenderName = document.getElementById('cardSenderName');
+        const cardLocationDate = document.getElementById('cardLocationDate');
+
+        const presetWishes = {
+            "1": "Chúc chị/em/bạn ngày 20/10 luôn tràn ngập hoa, nụ cười và hạnh phúc! Cảm ơn bạn vì sự nhiệt huyết và đóng góp tận tâm cùng tập thể BIC Bắc Trung Bộ.",
+            "2": "Kính chúc Lãnh đạo nữ luôn tràn đầy năng lượng, vững vàng bản lĩnh và tiếp tục dẫn dắt BIC Bắc Trung Bộ chinh phục nhiều đỉnh cao mới!"
+        };
+
+        function updateAreaPrefix() {
+            const area = recipientAreaSelect.value;
+            if (area === 'Nghệ An') {
+                recipientDeptInput.value = "PKD tại Nghệ An";
+                cardLocationDate.textContent = "Nghệ An, ngày 20 tháng 10 năm 2026";
+            } else if (area === 'Hà Tĩnh') {
+                recipientDeptInput.value = "PKD tại Hà Tĩnh";
+                cardLocationDate.textContent = "Hà Tĩnh, ngày 20 tháng 10 năm 2026";
+            } else {
+                recipientDeptInput.value = " ";
+                cardLocationDate.textContent = "Nghệ An, ngày 20 tháng 10 năm 2026";
+            }
+            updateCardPreview();
+        }
+
+        function updateCardPreview() {
+            const name = recipientNameInput.value.trim() || "Toàn thể chị em";
+            const dept = recipientDeptInput.value.trim() || " ";
+            const wish = customWishText.value.trim() || "Chúc mừng ngày Phụ nữ Việt Nam 20/10!";
+            const sender = senderNameInput.value.trim() || "Phan Quốc Khánh P.GĐBT";
+
+            cardRecipientName.textContent = name;
+            cardRecipientDept.textContent = dept;
+            cardWishBody.textContent = `"${wish}"`;
+            cardSenderName.textContent = sender;
+        }
+
+        function applyPresetWish() {
+            const val = presetWishSelect.value;
+            if (val !== 'custom' && presetWishes[val]) {
+                customWishText.value = presetWishes[val];
+                updateCardPreview();
+            }
+        }
+
+        function copyGreetingWish() {
+            const name = recipientNameInput.value.trim() || "Chị/Em";
+            const dept = recipientDeptInput.value.trim();          
+            const sender = senderNameInput.value.trim();
+            const fullText = `${sender} chúc ${name} có một ngày lễ 20/10 thật vui vẻ, hạnh phúc và tràn đầy yêu thương! Mại yêu ❤️`;
+            const temp = document.createElement("textarea");
+            temp.value = fullText;
+            document.body.appendChild(temp);
+            temp.select();
+            try {
+                document.execCommand('copy');
+                showToast("Đã sao chép lời chúc vào bộ nhớ tạm!", "fa-copy");
+                launchSparkles();
+            } catch (err) {
+                showToast("Không thể sao chép tự động, vui lòng chọn văn bản thủ công.", "fa-triangle-exclamation");
+            }
+            document.body.removeChild(temp);            
+        }
+
+        // HÀM XUẤT THIỆP ẢNH TỰ ĐỘNG BẰNG CANVAS (1200x840) - BẢN HOÀN THIỆN
+    async function downloadCardImage() {
+    if (typeof showToast === 'function') {
+        showToast("Đang tạo thiệp ảnh chất lượng cao...", "fa-spinner");
+    }
+
+    // 1. Chờ font tải xong
+    try {
+        await Promise.all([
+            document.fonts.load('56px "Ephesis"'),
+            document.fonts.load('800 44px "Be Vietnam Pro"'),
+            document.fonts.load('bold 18px "Be Vietnam Pro"'),
+            document.fonts.load('italic 23px "Be Vietnam Pro"')
+        ]);
+        await document.fonts.ready;
+    } catch (e) {
+        console.warn("Lưu ý: Không thể tải trước toàn bộ font, tiếp tục vẽ:", e);
+    }
+
+    const W = 1200;
+    const H = 840;
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = W;
+    exportCanvas.height = H;
+    const c = exportCanvas.getContext('2d');
+
+    // Hàm bổ trợ vẽ hình chữ nhật bo góc (Tương thích Safari/Webview cũ)
+    function drawRoundedRect(ctx, x, y, width, height, rad) {
+        if (typeof ctx.roundRect === 'function') {
+            ctx.beginPath();
+            ctx.roundRect(x, y, width, height, rad);
+        } else {
+            ctx.beginPath();
+            ctx.moveTo(x + rad, y);
+            ctx.lineTo(x + width - rad, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + rad);
+            ctx.lineTo(x + width, y + height - rad);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - rad, y + height);
+            ctx.lineTo(x + rad, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - rad);
+            ctx.lineTo(x, y + rad);
+            ctx.quadraticCurveTo(x, y, x + rad, y);
+            ctx.closePath();
+        }
+    }
+
+    // ----------------------------------------------------
+    // 2. VẼ NỀN GRADIENT & BO VIỀN THIỆP
+    // ----------------------------------------------------
+    c.save();
+    const radius = 32;
+    drawRoundedRect(c, 0, 0, W, H, radius);
+
+    const bgGrad = c.createLinearGradient(0, 0, W, H);
+    bgGrad.addColorStop(0, '#ffffff');
+    bgGrad.addColorStop(0.5, '#f0faf8');
+    bgGrad.addColorStop(1, '#d8f2ed');
+    c.fillStyle = bgGrad;
+    c.fill();
+    c.clip(); // Giới hạn toàn bộ nét vẽ bên trong thiệp
+
+    // ----------------------------------------------------
+    // 3. VẼ RUY BĂNG / LỤA NGHỆ THUẬT
+    // ----------------------------------------------------
+    function drawRibbons(ctx, width, height) {
+        // Góc dưới bên trái - Vàng
+        ctx.save();
+        ctx.fillStyle = '#ECD888';
+        ctx.beginPath();
+        ctx.moveTo(0, height * 0.636);
+        ctx.bezierCurveTo(width * 0.025, height * 0.644, width * 0.065, height * 0.705, width * 0.085, height * 0.773);
+        ctx.bezierCurveTo(width * 0.105, height * 0.841, width * 0.125, height * 0.856, width * 0.170, height * 0.841);
+        ctx.bezierCurveTo(width * 0.200, height * 0.830, width * 0.215, height * 0.795, width * 0.215, height * 0.795);
+        ctx.lineTo(width * 0.215, height);
+        ctx.lineTo(0, height);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // Góc dưới bên trái - Bóng xanh đậm
+        ctx.save();
+        ctx.fillStyle = '#0C625C';
+        ctx.globalAlpha = 0.95;
+        ctx.beginPath();
+        ctx.moveTo(width * 0.185, height);
+        ctx.bezierCurveTo(width * 0.185, height * 0.962, width * 0.200, height * 0.909, width * 0.230, height * 0.879);
+        ctx.bezierCurveTo(width * 0.250, height * 0.859, width * 0.270, height * 0.861, width * 0.290, height * 0.876);
+        ctx.lineTo(width * 0.290, height);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // Góc dưới bên trái - Dải xanh ngọc
+        ctx.save();
+        ctx.fillStyle = '#1EA197';
+        ctx.beginPath();
+        ctx.moveTo(0, height * 0.833);
+        ctx.bezierCurveTo(width * 0.015, height * 0.830, width * 0.030, height * 0.829, width * 0.045, height * 0.830);
+        ctx.bezierCurveTo(width * 0.115, height * 0.821, width * 0.175, height * 0.879, width * 0.210, height * 0.955);
+        ctx.bezierCurveTo(width * 0.225, height * 0.985, width * 0.230, height, width * 0.230, height);
+        ctx.lineTo(width * 0.180, height);
+        ctx.bezierCurveTo(width * 0.160, height * 0.939, width * 0.130, height * 0.882, width * 0.090, height * 0.856);
+        ctx.bezierCurveTo(width * 0.060, height * 0.836, width * 0.025, height * 0.838, 0, height * 0.845);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // Góc dưới bên phải - Khối vàng
+        ctx.save();
+        ctx.fillStyle = '#ECD888';
+        ctx.beginPath();
+        ctx.moveTo(width * 0.90, height);
+        ctx.bezierCurveTo(width * 0.93, height * 0.77, width * 0.96, height * 0.70, width, height * 0.71);
+        ctx.lineTo(width, height);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // Góc dưới bên phải - Vạt xanh ngọc
+        ctx.save();
+        ctx.fillStyle = '#1EA197';
+        ctx.beginPath();
+        ctx.moveTo(width * 0.83, height);
+        ctx.bezierCurveTo(width * 0.88, height * 0.94, width * 0.95, height * 0.94, width * 0.99, height * 0.98);
+        ctx.lineTo(width * 0.99, height);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+    drawRibbons(c, W, H);
+
+    // ----------------------------------------------------
+    // 4. VẼ LOGO (XỬ LÝ ASYNC AN TOÀN)
+    // ----------------------------------------------------
+    const loadAndDrawLogo = () => {
+        return new Promise((resolve) => {
+            if (typeof bicLogoImgObj === 'undefined' || !bicLogoImgObj) {
+                return resolve();
+            }
+            if (bicLogoImgObj.complete && bicLogoImgObj.naturalWidth !== 0) {
+                c.drawImage(bicLogoImgObj, 60, 48, 150, 50);
+                return resolve();
+            }
+            bicLogoImgObj.onload = () => {
+                c.drawImage(bicLogoImgObj, 60, 48, 150, 50);
+                resolve();
+            };
+            bicLogoImgObj.onerror = () => {
+                console.warn("Không thể tải ảnh logo BIC");
+                resolve(); // Vẫn resolve để không làm tắc luồng render
+            };
+        });
+    };
+
+    await loadAndDrawLogo();
+
+    // ----------------------------------------------------
+    // 5. VẼ NỘI DUNG VĂN BẢN & CHI TIẾT
+    // ----------------------------------------------------
+    // Header divider
+    c.strokeStyle = 'rgba(0, 92, 94, 0.2)';
+    c.lineWidth = 1.5;
+    c.beginPath();
+    c.moveTo(60, 130);
+    c.lineTo(W - 60, 130);
+    c.stroke();
+
+    // Tên đơn vị
+    c.fillStyle = '#005C5E';
+    c.font = 'bold 18px "Be Vietnam Pro", sans-serif';
+    c.textAlign = 'left';
+    c.fillText('CÔNG TY BẢO HIỂM BIDV BẮC TRUNG BỘ', 235, 78);
+
+    // Badge 20 THÁNG 10
+    drawRoundedRect(c, W - 200, 52, 140, 40, 20);
+    c.fillStyle = '#fff2e0';
+    c.fill();
+    c.strokeStyle = '#fbd49d';
+    c.lineWidth = 1;
+    c.stroke();
+
+    c.fillStyle = '#cf7307';
+    c.font = 'bold 14px "Be Vietnam Pro", sans-serif';
+    c.textAlign = 'center';
+    c.fillText('20 THÁNG 10', W - 130, 77);
+
+    // --- Thân thiệp ---
+    const centerX = W / 2;
+
+    // Lời tựa
+    c.fillStyle = '#E88A1A';
+    c.font = 'normal 56px "Ephesis", "Alex Brush", cursive';
+    c.textAlign = 'center';
+    c.fillText('Thân gửi lời chúc mừng tới', centerX, 225);
+
+    // Tên người nhận
+    const name = (typeof recipientNameInput !== 'undefined' && recipientNameInput.value.trim()) || "TOÀN THỂ CHỊ EM";
+    c.fillStyle = '#005C5E';
+    c.font = '800 44px "Be Vietnam Pro", sans-serif';
+    c.fillText(name.toUpperCase(), centerX, 290);
+
+    // Đơn vị người nhận
+    const dept = (typeof recipientDeptInput !== 'undefined' && recipientDeptInput.value.trim()) || "BIC Bắc Trung Bộ";
+    let boxStartY = 370;
+    if (dept) {
+        c.fillStyle = '#557271';
+        c.font = '600 20px "Be Vietnam Pro", sans-serif';
+        c.fillText(dept, centerX, 328);
+        boxStartY = 380;
+    }
+
+    // Lời chúc & Tách dòng (hỗ trợ cả dấu cách lẫn \n)
+    const rawWish = (typeof customWishText !== 'undefined' && customWishText.value.trim())
+        || 'Chúc mừng chị em có một ngày lễ 20/10 thật vui vẻ!';
+    const wishText = `“${rawWish}”`;
+
+    let fontSize = 23;
+    let lineHeight = 38;
+    c.font = `italic ${fontSize}px "Be Vietnam Pro", sans-serif`;
+
+    const maxTextWidth = 780;
+    const paragraphs = wishText.split('\n');
+    let lines = [];
+
+    paragraphs.forEach(para => {
+        const words = para.split(' ').filter(w => w.length > 0);
+        if (words.length === 0) return;
+        let currentLine = words[0];
+        for (let i = 1; i < words.length; i++) {
+            const testLine = currentLine + ' ' + words[i];
+            if (c.measureText(testLine).width < maxTextWidth) {
+                currentLine = testLine;
+            } else {
+                lines.push(currentLine);
+                currentLine = words[i];
+            }
+        }
+        lines.push(currentLine);
+    });
+
+    // Tự động thu nhỏ cỡ chữ nếu nội dung dài quá 4 dòng
+    if (lines.length > 4) {
+        fontSize = 20;
+        lineHeight = 32;
+        c.font = `italic ${fontSize}px "Be Vietnam Pro", sans-serif`;
+    }
+
+    const boxPaddingY = 30;
+    const boxHeight = lines.length * lineHeight + boxPaddingY * 2;
+
+    // Vẽ hộp nền trắng mờ chứa lời chúc
+    c.save();
+    drawRoundedRect(c, centerX - 460, boxStartY, 920, boxHeight, 22);
+    c.fillStyle = 'rgba(255, 255, 255, 0.92)';
+    c.fill();
+    c.strokeStyle = 'rgba(0, 92, 94, 0.16)';
+    c.lineWidth = 1.5;
+    c.stroke();
+    c.restore();
+
+    // In từng dòng chữ
+    c.fillStyle = '#263b3a';
+    c.textAlign = 'center';
+    const startTextY = boxStartY + boxPaddingY + (lineHeight * 0.7);
+    for (let j = 0; j < lines.length; j++) {
+        c.fillText(lines[j], centerX, startTextY + (j * lineHeight));
+    }
+
+    // --- Chân thiệp ---
+    const footerY = H - 95;
+    c.strokeStyle = 'rgba(0, 92, 94, 0.18)';
+    c.lineWidth = 1;
+    c.beginPath();
+    c.moveTo(60, footerY);
+    c.lineTo(W - 60, footerY);
+    c.stroke();
+
+    // Ngày tháng / địa danh (Trái)
+    const dateVal = (cardLocationDate && cardLocationDate.textContent.trim()) 
+    || (recipientAreaSelect && recipientAreaSelect.value === 'Hà Tĩnh' ? "Hà Tĩnh, ngày 20 tháng 10 năm 2026" : "Nghệ An, ngày 20 tháng 10 năm 2026");
+c.textAlign = 'left';
+c.fillStyle = '#557271';
+c.font = 'italic 20px "Be Vietnam Pro", sans-serif';
+c.fillText(dateVal, 65, footerY + 50);
+
+    // Người gửi (Phải)
+    c.textAlign = 'right';
+    c.fillStyle = '#7a9190';
+    c.font = '14px "Be Vietnam Pro", sans-serif';
+    c.fillText('TRÂN TRỌNG GỬI TẶNG:', W - 65, footerY + 32);
+
+    const sender = (typeof senderNameInput !== 'undefined' && senderNameInput.value.trim()) || "Phan Quốc Khánh P.GĐBT";
+    c.fillStyle = '#005C5E';
+    c.font = 'bold 22px "Be Vietnam Pro", sans-serif';
+    c.fillText(sender, W - 65, footerY + 60);
+
+    c.restore(); // Khôi phục lại trạng thái ban đầu sau khi clip
+
+    // ----------------------------------------------------
+    // 6. XUẤT FILE ẢNH TẢI VỀ
+    // ----------------------------------------------------
+    try {
+        const link = document.createElement('a');
+        link.download = `Thiep_20-10_BIC_BTB.png`;
+        link.href = exportCanvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        if (typeof showToast === 'function') showToast("Thiệp đã tải về thành công!", "fa-circle-check");
+        if (typeof launchSparkles === 'function') launchSparkles();
+    } catch (err) {
+        console.error("Lỗi xuất ảnh canvas (có thể do CORS logo):", err);
+        if (typeof showToast === 'function') showToast("Lỗi khi tải ảnh!", "fa-triangle-exclamation");
+    }
+}
+
+        // --- 4. PHÁO HOA GIẤY (CONFETTI) ---
+        function launchSparkles() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 50,
+                    spread: 60,
+                    origin: { y: 0.8 },
+                    colors: ['#005C5E', '#E88A1A', '#F4B842', '#dcf1ee', '#ff6b8b']
+                });
+            }
+        }
+
+        // --- 5. TOAST THÔNG BÁO ---
+        let toastTimer;
+        function showToast(msg, icon = "fa-circle-check") {
+            const toast = document.getElementById('toastNotice');
+            const msgEl = document.getElementById('toastMessage');
+            const iconEl = document.getElementById('toastIcon');
+
+            msgEl.textContent = msg;
+            iconEl.className = `fa-solid ${icon} text-bic-accentyellow text-lg`;
+
+            toast.classList.remove('translate-y-[-150%]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-[-150%]', 'opacity-0');
+            }, 3000);
+        }
+
+        // --- 6. MODAL MÃ QR ---
+        function openSocialModal() {
+            const modal = document.getElementById('socialModal');
+            const content = document.getElementById('socialModalContent');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+        }
+
+        function closeSocialModal() {
+            const modal = document.getElementById('socialModal');
+            const content = document.getElementById('socialModalContent');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+        }
+
+        document.getElementById('socialModal').addEventListener('click', function(e) {
+            if (e.target === this) closeSocialModal();
+        });
+
+        window.onload = function() {
+            animatePetals();
+            updateCardPreview();
+        };
+    </script>
+</body>
+</html>
